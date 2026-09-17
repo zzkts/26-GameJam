@@ -5,15 +5,19 @@ using UnityEngine.EventSystems;
 
 public class LongPressHandler : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPointerExitHandler
 {
-    [Header("³¤°´²ÎÊı")]
+    [Header("é•¿æŒ‰å‚æ•°")]
     public float holdTime = 1f;
     public float repeatInterval = 0.1f;
 
-    [Header("×ó¼üÊÂ¼ş£¨¶Ì°´´¥·¢1´Î / ³¤°´×Ô¶¯Á¬Ğø´¥·¢£©")]
+    [Header("å·¦é”®äº‹ä»¶ï¼ˆçŸ­æŒ‰è§¦å‘1æ¬¡ / é•¿æŒ‰è‡ªåŠ¨è¿ç»­è§¦å‘ï¼‰")]
     public UnityEvent onLeftPress;
 
-    [Header("ÓÒ¼üÊÂ¼ş£¨¶Ì°´´¥·¢1´Î / ³¤°´×Ô¶¯Á¬Ğø´¥·¢£©")]
+    [Header("å³é”®äº‹ä»¶ï¼ˆçŸ­æŒ‰è§¦å‘1æ¬¡ / é•¿æŒ‰è‡ªåŠ¨è¿ç»­è§¦å‘ï¼‰")]
     public UnityEvent onRightPress;
+
+    [Header("æ‹–æ‹½å±è”½ï¼ˆç”± ç‰©ä½“æ‹–æ‹½ å†™å…¥ï¼Œæ— éœ€æ‰‹åŠ¨è®¾ç½®ï¼‰")]
+    [Tooltip("æœ¬æ¬¡æŒ‰ä¸‹å·²å˜æˆæ‹–æ‹½æ—¶ç½®ä¸º trueï¼Œå±è”½ç‚¹å‡»ä¸é•¿æŒ‰è§¦å‘")]
+    public bool è¢«æ‹–æ‹½å±è”½;
 
     private Coroutine longPressCoroutine;
     private bool isPressed;
@@ -22,11 +26,15 @@ public class LongPressHandler : MonoBehaviour, IPointerDownHandler, IPointerUpHa
 
     public void OnPointerDown(PointerEventData eventData)
     {
-        Debug.Log("ÊÕµ½°´ÏÂ: " + eventData.button);
+        Debug.Log("æ”¶åˆ°æŒ‰ä¸‹: " + eventData.button);
         var btn = eventData.button;
         if (btn != PointerEventData.InputButton.Left && btn != PointerEventData.InputButton.Right) return;
 
-        // ¡¾ºËĞÄĞŞ¸´¡¿Ö»Í£Ğ­³Ì£¬Ç§Íò±ğµ÷ÓÃ StopLongPress()£¬·ñÔò isPressed »á±»Éè³É false£¡
+        // â˜… è®°å½•ç‚¹å‡»æ¥æºï¼šè®© å‘å°„åŠ¨ç”» çŸ¥é“æ–°ç”Ÿæˆçš„é¢„åˆ¶ä½“è¯¥ä»å“ªé‡Œèµ·é£
+        //   ï¼ˆæ”¯ä»˜é’±é¢æ¿ä¸Šçš„é’ç¥¨ã€è´­ä¹°å•†å“å¤„çš„çŒªä¸çŒ«éƒ½æŒ‚äº†æœ¬ç»„ä»¶ï¼‰
+        å‘å°„åŠ¨ç”».è®°å½•ç‚¹å‡»æ¥æº(transform);
+
+        // ã€æ ¸å¿ƒä¿®å¤ã€‘åªåœåç¨‹ï¼Œåƒä¸‡åˆ«è°ƒç”¨ StopLongPress()ï¼Œå¦åˆ™ isPressed ä¼šè¢«è®¾æˆ falseï¼
         if (longPressCoroutine != null)
         {
             StopCoroutine(longPressCoroutine);
@@ -44,17 +52,24 @@ public class LongPressHandler : MonoBehaviour, IPointerDownHandler, IPointerUpHa
     {
         if (!isPressed) return;
 
-        // Èç¹ûÃ»´¥·¢¹ı³¤°´£¬ËµÃ÷ÊÇ¶Ì°´£¨ÊÖ¶¯£©£¬ËÉ¿ªÊ±´¥·¢Ò»´Î
+        // æœ¬æ¬¡æŒ‰ä¸‹å·²ç»å˜æˆæ‹–æ‹½ â†’ ä¸è§¦å‘ä»»ä½•äº‹ä»¶ï¼ŒåªåšçŠ¶æ€æ¸…ç†
+        if (è¢«æ‹–æ‹½å±è”½)
+        {
+            StopLongPress();
+            return;
+        }
+
+        // å¦‚æœæ²¡è§¦å‘è¿‡é•¿æŒ‰ï¼Œè¯´æ˜æ˜¯çŸ­æŒ‰ï¼ˆæ‰‹åŠ¨ï¼‰ï¼Œæ¾å¼€æ—¶è§¦å‘ä¸€æ¬¡
         if (!longPressTriggered)
         {
             if (eventData.button == PointerEventData.InputButton.Left)
             {
-                Debug.Log("´¥·¢×ó¼ü¶Ì°´ Invoke");
+                Debug.Log("è§¦å‘å·¦é”®çŸ­æŒ‰ Invoke");
                 onLeftPress?.Invoke();
             }
             else if (eventData.button == PointerEventData.InputButton.Right)
             {
-                Debug.Log("´¥·¢ÓÒ¼ü¶Ì°´ Invoke");
+                Debug.Log("è§¦å‘å³é”®çŸ­æŒ‰ Invoke");
                 onRightPress?.Invoke();
             }
         }
@@ -64,7 +79,7 @@ public class LongPressHandler : MonoBehaviour, IPointerDownHandler, IPointerUpHa
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        // ÒÆ³ö°´Å¥Ê±£¬Ö»Í£Ö¹³¤°´Ğ­³Ì£¬²»ÖØÖÃ isPressed£¬±£Ö¤ËÉÊÖÊ±»¹ÄÜ´¥·¢¶Ì°´
+        // ç§»å‡ºæŒ‰é’®æ—¶ï¼Œåªåœæ­¢é•¿æŒ‰åç¨‹ï¼Œä¸é‡ç½® isPressedï¼Œä¿è¯æ¾æ‰‹æ—¶è¿˜èƒ½è§¦å‘çŸ­æŒ‰
         if (longPressCoroutine != null)
         {
             StopCoroutine(longPressCoroutine);
@@ -89,17 +104,23 @@ public class LongPressHandler : MonoBehaviour, IPointerDownHandler, IPointerUpHa
 
         longPressTriggered = true;
 
-        // ³¤°´µ½´ïÊ±¼ä£¬¿ªÊ¼×Ô¶¯Á¬Ğø´¥·¢
+        // é•¿æŒ‰åˆ°è¾¾æ—¶é—´ï¼Œå¼€å§‹è‡ªåŠ¨è¿ç»­è§¦å‘
         while (isPressed && pressedButton == btn)
         {
+            // æ‹–æ‹½å·²ç»å¼€å§‹ â†’ åœæ­¢è¿ç»­è§¦å‘
+            if (è¢«æ‹–æ‹½å±è”½) yield break;
+
+            // â˜… è¿å‘æ—¶åˆ·æ–°ç‚¹å‡»æ¥æºï¼Œé¿å…é•¿æŒ‰å¤ªä¹…åå‘å°„æºå¤±æ•ˆ
+            å‘å°„åŠ¨ç”».è®°å½•ç‚¹å‡»æ¥æº(transform);
+
             if (btn == PointerEventData.InputButton.Left)
             {
-                Debug.Log("´¥·¢×ó¼ü³¤°´ Invoke");
+                Debug.Log("è§¦å‘å·¦é”®é•¿æŒ‰ Invoke");
                 onLeftPress?.Invoke();
             }
             else if (btn == PointerEventData.InputButton.Right)
             {
-                Debug.Log("´¥·¢ÓÒ¼ü³¤°´ Invoke");
+                Debug.Log("è§¦å‘å³é”®é•¿æŒ‰ Invoke");
                 onRightPress?.Invoke();
             }
 

@@ -141,24 +141,18 @@ public class 交易控制器 : MonoBehaviour
                         float x = UnityEngine.Random.Range(-200f, -650f);
                         float y = UnityEngine.Random.Range(-50f, 150f);
 
-                        var go = Instantiate(prefab, 显示控制.Instance.transform);
+                        // ★ 发射：从客户（需在「发射动画」上配置客户锚点）沿贝塞尔曲线飞到获得区域
+                        var go = 发射动画.发射(
+                            prefab,
+                            显示控制.Instance.transform,
+                            new Vector2(x, y),
+                            取本次发射起点(交易类型, 发射动画.配置.购买商品锚点),
+                            交易类型);
                         显示控制.Instance.获得对象.Add(go);
                         // ★ 记录这个采购商品对象的信息
                         显示控制.Instance.获得对象交易类型.Add(交易类型);
                         显示控制.Instance.获得对象面值.Add(0);
                         显示控制.Instance.获得对象名称.Add(选择商品名称);
-                        var rt = go.transform as RectTransform;
-
-                        if (rt != null)
-                        {
-                            // UI/RectTransform 坐标：相对父节点的 anchoredPosition
-                            rt.anchoredPosition = new Vector2(x, y);
-                        }
-                        else
-                        {
-                            // 世界坐标生成
-                            go.transform.position = new Vector3(x, y, 0f);
-                        }
                     }
                 }
             }
@@ -215,24 +209,18 @@ public class 交易控制器 : MonoBehaviour
                             //根据“显示控制.Instance.待交易物品A”预制体在x200-650y-50-150;
                             float x = UnityEngine.Random.Range(200f, 650f);
                             float y = UnityEngine.Random.Range(-50f, 150f);
-                            var go = Instantiate(prefab, 显示控制.Instance.transform); // UI 的话传父 RectTransform
+                            // ★ 发射：从被点击的猪 / 猫沿贝塞尔曲线飞到获得区域
+                            var go = 发射动画.发射(
+                                prefab,
+                                显示控制.Instance.transform,
+                                new Vector2(x, y),
+                                取本次发射起点(交易类型, 发射动画.配置.购买商品锚点),
+                                交易类型);
                             显示控制.Instance.获得对象.Add(go);
                             // ★ 同步记录到获得对象的并行列表
                             显示控制.Instance.获得对象交易类型.Add(交易类型);
                             显示控制.Instance.获得对象面值.Add(0);
                             显示控制.Instance.获得对象名称.Add(选择商品名称);
-                            var rt = go.transform as RectTransform;
-
-                            if (rt != null)
-                            {
-                                // UI/RectTransform 坐标：相对父节点的 anchoredPosition
-                                rt.anchoredPosition = new Vector2(x, y);
-                            }
-                            else
-                            {
-                                // 世界坐标生成
-                                go.transform.position = new Vector3(x, y, 0f);
-                            }
                         }
                         break;
                     }
@@ -251,6 +239,24 @@ public class 交易控制器 : MonoBehaviour
     {
         print("右");
         取消要支付的钱(1, 面值);
+    }
+
+    // ★ 取本次「发射」的起点：
+    //   交易类型 1（我出钱 / 我买东西）= 玩家刚点击的物体（支付钱面板上的钞票、购买商品处的猪与猫）
+    //   交易类型 0（客户给钱 / 客户买货）= 「发射动画」上配置的客户锚点
+    //   两者都取不到时用兜底锚点，兜底锚点也为空则由「发射动画」退化成直接出现在落点
+    private 发射动画.发射起点 取本次发射起点(int 交易类型, Transform 兜底锚点)
+    {
+        if (交易类型 == 1)
+        {
+            var 点击起点 = 发射动画.取点击起点();
+            if (点击起点.位置 != null) return 点击起点;
+            return 发射动画.取锚点(兜底锚点);
+        }
+
+        var 客户起点 = 发射动画.取锚点(发射动画.配置.客户锚点);
+        if (客户起点.位置 != null) return 客户起点;
+        return 发射动画.取锚点(兜底锚点);
     }
 
     public void 选择要支付的钱(int 交易类型, float 面值)
@@ -394,24 +400,18 @@ public class 交易控制器 : MonoBehaviour
             }
             float y = UnityEngine.Random.Range(-50f, 150f);
 
-            var go = Instantiate(prefab, 显示控制.Instance.transform);
+            // ★ 发射：从被点击的支付钱物体（或客户处）沿贝塞尔曲线飞到提供区域
+            var go = 发射动画.发射(
+                prefab,
+                显示控制.Instance.transform,
+                new Vector2(x, y),
+                取本次发射起点(交易类型, 发射动画.配置.支付钱锚点),
+                交易类型);
             显示控制.Instance.提供对象.Add(go);
             // ★ 记录这个对象属于哪种交易类型、什么面值
             显示控制.Instance.提供对象交易类型.Add(交易类型);
             显示控制.Instance.提供对象面值.Add(面值);
             显示控制.Instance.提供对象名称.Add("");
-            var rt = go.transform as RectTransform;
-
-            if (rt != null)
-            {
-                // UI/RectTransform 坐标：相对父节点的 anchoredPosition
-                rt.anchoredPosition = new Vector2(x, y);
-            }
-            else
-            {
-                // 世界坐标生成
-                go.transform.position = new Vector3(x, y, 0f);
-            }
         }
     }
     public void 取消要支付的钱(int 交易类型, float 面值)
