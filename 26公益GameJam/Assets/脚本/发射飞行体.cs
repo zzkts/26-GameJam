@@ -17,6 +17,10 @@ public class 发射飞行体 : MonoBehaviour
     private float 起始缩放倍率, 末端缩放倍率, 旋转圈数;
     private AnimationCurve 缓动曲线;
 
+    // 落地收尾（压扁回弹）用的状态
+    private float 落地压扁, 落地回弹时长, 落地已用时;
+    private bool 落地收尾中;
+
     private CanvasGroup 遮罩;
     private bool 遮罩为自建;
     private bool 遮罩原有可点击 = true;
@@ -44,6 +48,9 @@ public class 发射飞行体 : MonoBehaviour
         缓动曲线 = 参数.缓动曲线;
         原始缩放 = 参数.原始缩放;
         原始旋转 = 参数.原始旋转;
+        落地压扁 = 参数.落地压扁;
+        落地回弹时长 = 参数.落地回弹时长;
+        落地收尾中 = false;
         已用时 = 0f;
 
         // 二次贝塞尔的两段控制点：先按起终点连线插值，再沿指定方向抬起
@@ -51,6 +58,8 @@ public class 发射飞行体 : MonoBehaviour
         控制点2 = Vector2.Lerp(起点, 终点, 参数.控制点位置B) + 参数.弧线方向向量 * 参数.弧度 * 参数.弧度衰减;
 
         拖拽脚本 = GetComponent<物体拖拽>();
+        // 告诉 物体拖拽：这段时间的缩放 / 旋转归飞行管，别抢
+        if (拖拽脚本 != null) 拖拽脚本.飞行中 = true;
 
         if (参数.飞行中禁止点击)
         {
@@ -73,6 +82,12 @@ public class 发射飞行体 : MonoBehaviour
 
     private void Update()
     {
+        if (落地收尾中)
+        {
+            更新落地收尾();
+            return;
+        }
+
         if (!飞行中状态) return;
 
         // 被玩家抓起来拖走 → 让位给拖拽，飞行提前收尾
@@ -125,6 +140,49 @@ public class 发射飞行体 : MonoBehaviour
             遮罩 = null;
         }
 
+        // 落地收尾：压扁一点再弹回原大小，补上「落在桌面上」的重量感。
+        // 被玩家在半空中接走时不播，免得和拖拽抢缩放。
+        if (回到终点 && 自身 != null && 落地压扁 > 0f && 落地回弹时长 > 0f &&
+            (拖拽脚本 == null || !拖拽脚本.正在拖拽))
+        {
+            // 这里故意不解除 拖拽脚本.飞行中：压扁期间还得靠它挡住
+            // 物体拖拽.更新表现，否则压下去的那点缩放每帧都会被插值拉回原大小。
+            落地收尾中 = true;
+            落地已用时 = 0f;
+            return;
+        }
+
+        // 没播收尾（或被半空接走）→ 直接把缩放 / 旋转交回 物体拖拽
+        交出表现权();
+    }
+
+    /// <summary>落地后的压扁回弹：sin 曲线 0 → 1 → 0，和 源后坐力 的做法一致。</summary>
+    private void 更新落地收尾()
+    {
+        // 收尾期间被玩家抓起来 → 立刻收手，把缩放交回 物体拖拽
+        if (拖拽脚本 != null && (拖拽脚本.正在拖拽 || 拖拽脚本.是否处于长按状态))
+        {
+            自身.localScale = 原始缩放;
+            交出表现权();
+            return;
+        }
+
+        落地已用时 += Time.unscaledDeltaTime;
+
+        float 进度 = 落地回弹时长 <= 0f ? 1f : Mathf.Clamp01(落地已用时 / 落地回弹时长);
+        自身.localScale = 原始缩放 * (1f - 落地压扁 * Mathf.Sin(进度 * Mathf.PI));
+
+        if (进度 >= 1f)
+        {
+            自身.localScale = 原始缩放;
+            交出表现权();
+        }
+    }
+
+    /// <summary>收尾结束：解除 物体拖拽 的飞行中标记，把自己摘掉。</summary>
+    private void 交出表现权()
+    {
+        if (拖拽脚本 != null) 拖拽脚本.飞行中 = false;
         Destroy(this);
     }
 

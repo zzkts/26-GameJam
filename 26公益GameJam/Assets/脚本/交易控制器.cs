@@ -129,19 +129,31 @@ public class 交易控制器 : MonoBehaviour
                     GameObject prefab = null;
                     if (商品已拥有列表[i].商品名称 == "A")
                     {
-                        prefab = 显示控制.Instance.待交易物品A;
+                        prefab = 显示控制.Instance.待交易物品列表[0];
                     }
                     if (商品已拥有列表[i].商品名称 == "B")
                     {
-                        prefab = 显示控制.Instance.待交易物品B;
+                        prefab = 显示控制.Instance.待交易物品列表[1];
+                    }
+                    if (商品已拥有列表[i].商品名称 == "C")
+                    {
+                        prefab = 显示控制.Instance.待交易物品列表[2];
+                    }
+                    if (商品已拥有列表[i].商品名称 == "D")
+                    {
+                        prefab = 显示控制.Instance.待交易物品列表[3];
+                    }
+                    if (商品已拥有列表[i].商品名称 == "E")
+                    {
+                        prefab = 显示控制.Instance.待交易物品列表[4];
                     }
                     if (prefab != null)
                     {
                         //根据“显示控制.Instance.待交易物品A”预制体在x200-650y-50-150;
-                        float x = UnityEngine.Random.Range(-200f, -650f);
-                        float y = UnityEngine.Random.Range(-50f, 150f);
+                        float x = UnityEngine.Random.Range(-150f, 150f);
+                        float y = UnityEngine.Random.Range(-50f, 400f);
 
-                        // ★ 发射：从客户（需在「发射动画」上配置客户锚点）沿贝塞尔曲线飞到获得区域
+                        // ★ 发射：客户买货时从客户（需在「发射动画」上配置客户锚点）沿贝塞尔曲线飞到获得区域
                         var go = 发射动画.发射(
                             prefab,
                             显示控制.Instance.transform,
@@ -198,17 +210,29 @@ public class 交易控制器 : MonoBehaviour
                         GameObject prefab = null;
                         if (商品待购买列表[i].商品名称 == "A")
                         {
-                            prefab = 显示控制.Instance.待交易物品A;
+                            prefab = 显示控制.Instance.待交易物品列表[0];
                         }
                         if (商品待购买列表[i].商品名称 == "B")
                         {
-                            prefab = 显示控制.Instance.待交易物品B;
+                            prefab = 显示控制.Instance.待交易物品列表[1];
+                        }
+                        if (商品待购买列表[i].商品名称 == "C")
+                        {
+                            prefab = 显示控制.Instance.待交易物品列表[2];
+                        }
+                        if (商品待购买列表[i].商品名称 == "D")
+                        {
+                            prefab = 显示控制.Instance.待交易物品列表[3];
+                        }
+                        if (商品待购买列表[i].商品名称 == "E")
+                        {
+                            prefab = 显示控制.Instance.待交易物品列表[4];
                         }
                         if (prefab != null)
                         {
                             //根据“显示控制.Instance.待交易物品A”预制体在x200-650y-50-150;
-                            float x = UnityEngine.Random.Range(200f, 650f);
-                            float y = UnityEngine.Random.Range(-50f, 150f);
+                            float x = UnityEngine.Random.Range(-475f, 475f);
+                            float y = UnityEngine.Random.Range(-200f, -125f);
                             // ★ 发射：从被点击的猪 / 猫沿贝塞尔曲线飞到获得区域
                             var go = 发射动画.发射(
                                 prefab,
@@ -390,15 +414,17 @@ public class 交易控制器 : MonoBehaviour
         {
             //根据“显示控制.Instance.待交易物品A”预制体在x200-650y-50-150;
             float x = 0;
+            float y = 0;
             if (交易类型 == 1)
             {
-                x = UnityEngine.Random.Range(-200f, -650f);
+                x = UnityEngine.Random.Range(-150f, 150f);
+                y = UnityEngine.Random.Range(-50f, 400f);
             }
             if (交易类型 == 0)
             {
-                x = UnityEngine.Random.Range(200f, 650f);
+                x = UnityEngine.Random.Range(-475f, 475f);
+                y = UnityEngine.Random.Range(-200f, -125f);
             }
-            float y = UnityEngine.Random.Range(-50f, 150f);
 
             // ★ 发射：从被点击的支付钱物体（或客户处）沿贝塞尔曲线飞到提供区域
             var go = 发射动画.发射(
@@ -577,13 +603,28 @@ public class 交易控制器 : MonoBehaviour
 
         if (选中商品.商品名称 == "A")
         {
-            显示控制.Instance.物品A数量.text =
-                (int.Parse(显示控制.Instance.物品A数量.text) - 1).ToString();
+            显示控制.Instance.物品显示数量列表[0].text =
+                (int.Parse(显示控制.Instance.物品显示数量列表[0].text) - 1).ToString();
         }
         if (选中商品.商品名称 == "B")
         {
-            显示控制.Instance.物品B数量.text =
-                (int.Parse(显示控制.Instance.物品B数量.text) - 1).ToString();
+            显示控制.Instance.物品显示数量列表[1].text =
+                (int.Parse(显示控制.Instance.物品显示数量列表[1].text) - 1).ToString();
+        }
+        if (选中商品.商品名称 == "C")
+        {
+            显示控制.Instance.物品显示数量列表[2].text =
+                (int.Parse(显示控制.Instance.物品显示数量列表[2].text) - 1).ToString();
+        }
+        if (选中商品.商品名称 == "D")
+        {
+            显示控制.Instance.物品显示数量列表[3].text =
+                (int.Parse(显示控制.Instance.物品显示数量列表[3].text) - 1).ToString();
+        }
+        if (选中商品.商品名称 == "E")
+        {
+            显示控制.Instance.物品显示数量列表[4].text =
+                (int.Parse(显示控制.Instance.物品显示数量列表[4].text) - 1).ToString();
         }
         //客户给钱
         //将"选中商品.售卖价"按照规则，以及参数"拆分精度"和"顾客出错率"进行拆分
@@ -941,11 +982,28 @@ public class 交易控制器 : MonoBehaviour
                 }
                 if (临时待交易商品[i].商品名称 == "A")
                 {
-                    显示控制.Instance.物品A数量.text = (int.Parse(显示控制.Instance.物品A数量.text) + 临时待交易商品[i].数量).ToString();
+                    显示控制.Instance.物品显示数量列表[0].text =
+                        (int.Parse(显示控制.Instance.物品显示数量列表[0].text) + 临时待交易商品[i].数量).ToString();
                 }
                 if (临时待交易商品[i].商品名称 == "B")
                 {
-                    显示控制.Instance.物品B数量.text = (int.Parse(显示控制.Instance.物品B数量.text) + 临时待交易商品[i].数量).ToString();
+                    显示控制.Instance.物品显示数量列表[1].text =
+                        (int.Parse(显示控制.Instance.物品显示数量列表[1].text) + 临时待交易商品[i].数量).ToString();
+                }
+                if (临时待交易商品[i].商品名称 == "C")
+                {
+                    显示控制.Instance.物品显示数量列表[2].text =
+                        (int.Parse(显示控制.Instance.物品显示数量列表[2].text) + 临时待交易商品[i].数量).ToString();
+                }
+                if (临时待交易商品[i].商品名称 == "D")
+                {
+                    显示控制.Instance.物品显示数量列表[3].text =
+                        (int.Parse(显示控制.Instance.物品显示数量列表[3].text) + 临时待交易商品[i].数量).ToString();
+                }
+                if (临时待交易商品[i].商品名称 == "E")
+                {
+                    显示控制.Instance.物品显示数量列表[4].text =
+                        (int.Parse(显示控制.Instance.物品显示数量列表[4].text) + 临时待交易商品[i].数量).ToString();
                 }
             }
         }
@@ -1043,6 +1101,11 @@ public class 交易控制器 : MonoBehaviour
         待收取钱 = 0;
         商品价值 = 0;
         事件控制器.Instance.完成交易 = true;
+        if (交易类型 == 1)
+        {
+            事件控制器.Instance.打开事件(1); 
+            事件控制器.Instance.确认营业();
+        }
     }
     public void 取消交易()
     {

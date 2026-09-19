@@ -31,16 +31,16 @@ public class 发射动画 : MonoBehaviour
 
     [Header("② 飞行时间")]
     [Tooltip("一次飞行的大致时长（秒）")]
-    public float 飞行时长 = 0.38f;
+    public float 飞行时长 = 0.42f;
 
     [Tooltip("每个物体在时长上的随机浮动（秒），0 = 所有物体时长一致")]
-    public float 时长随机浮动 = 0.08f;
+    public float 时长随机浮动 = 0.06f;
 
     [Tooltip("连发错开：0.2 秒内连续发射时，每多一个物体就多等这么久再起飞，形成错落的拖尾")]
-    public float 连发错开 = 0.03f;
+    public float 连发错开 = 0.035f;
 
     [Tooltip("连发错开的累计上限（秒），避免连点太快时后面的一直不起飞")]
-    public float 连发错开上限 = 0.15f;
+    public float 连发错开上限 = 0.18f;
 
     // ==================== ③ 贝塞尔曲线 ====================
 
@@ -48,19 +48,19 @@ public class 发射动画 : MonoBehaviour
     public 弧线方向 弧度方向 = 弧线方向.上;
 
     [Tooltip("弧线高度：控制点相对起终点连线的垂直偏移（像素）")]
-    public float 曲线弧度 = 90f;
+    public float 曲线弧度 = 130f;
 
     [Tooltip("每次发射时弧度的随机浮动（像素）")]
-    public float 弧度随机浮动 = 35f;
+    public float 弧度随机浮动 = 40f;
 
     [Tooltip("第一个控制点的位置（0~1），越小越早把物体抛起来")]
-    public float 控制点位置A = 0.25f;
+    public float 控制点位置A = 0.2f;
 
     [Tooltip("第二个控制点的位置（0~1），越大落点前越晚收拢")]
-    public float 控制点位置B = 0.75f;
+    public float 控制点位置B = 0.8f;
 
     [Tooltip("第二个控制点的弧度比例（0~1），越小越像抛物线一样被抛出去")]
-    [Range(0f, 1f)] public float 弧度衰减 = 0.6f;
+    [Range(0f, 1f)] public float 弧度衰减 = 0.55f;
 
     [Tooltip("时间 → 进度的缓动曲线；把中间某个关键帧拖到 1 以上，可以做出一头扎进落点再弹回来的过冲效果")]
     public AnimationCurve 缓动曲线 = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
@@ -69,7 +69,7 @@ public class 发射动画 : MonoBehaviour
 
     [Header("④ 飞行表现")]
     [Tooltip("起飞瞬间的缩放倍率（相对预制体原缩放）")]
-    public float 起始缩放倍率 = 1.15f;
+    public float 起始缩放倍率 = 1.25f;
 
     [Tooltip("落点处的缩放倍率（相对预制体原缩放），1 = 恢复成预制体原本的大小")]
     public float 末端缩放倍率 = 1f;
@@ -78,10 +78,16 @@ public class 发射动画 : MonoBehaviour
     public float 旋转圈数;
 
     [Tooltip("起飞位置的随机抖动半径（像素），避免多张钞票完全重叠在一起")]
-    public float 起飞抖动 = 10f;
+    public float 起飞抖动 = 14f;
 
     [Tooltip("飞行途中禁止点击，避免误点到正在飞的物体")]
     public bool 飞行中禁止点击 = true;
+
+    [Tooltip("落地瞬间的压扁程度（相对原缩放），0 = 不压。让物品落地有「砸在桌上」的重量感")]
+    [Range(0f, 0.5f)] public float 落地压扁 = 0.12f;
+
+    [Tooltip("落地压扁回弹到原大小的时间（秒），0 = 不播落地收尾")]
+    public float 落地回弹时长 = 0.09f;
 
     // ==================== ⑤ 发射源锚点 ====================
 
@@ -96,7 +102,7 @@ public class 发射动画 : MonoBehaviour
     public Transform 客户锚点;
 
     [Tooltip("点击来源的有效期（秒），超过这个时间没有新点击就认为来源已失效，0 = 永不过期")]
-    public float 点击来源有效期;
+    public float 点击来源有效期 = 2f;
 
     // ==================== ⑥ 发射源反馈 ====================
 
@@ -105,10 +111,10 @@ public class 发射动画 : MonoBehaviour
     public bool 源后坐力 = true;
 
     [Tooltip("后坐力的收缩幅度（相对原缩放）")]
-    [Range(0f, 0.5f)] public float 后坐力幅度 = 0.12f;
+    [Range(0f, 0.5f)] public float 后坐力幅度 = 0.14f;
 
     [Tooltip("后坐力的时长（秒）")]
-    public float 后坐力时长 = 0.12f;
+    public float 后坐力时长 = 0.13f;
 
     // ==================== ⑦ 调试 ====================
 
@@ -135,6 +141,8 @@ public class 发射动画 : MonoBehaviour
         public Vector3 原始缩放;
         public Quaternion 原始旋转;
         public bool 飞行中禁止点击;
+        public float 落地压扁;
+        public float 落地回弹时长;
     }
 
     /// <summary>发射起点：位置 + 可选的手感覆盖标记（标记来自按钮上的 发射源 组件）。</summary>
@@ -237,6 +245,18 @@ public class 发射动画 : MonoBehaviour
 
         var go = Instantiate(预制体, 父级);
         var rt = go.transform as RectTransform;
+
+        // 只有「生成到提供/获得区域」的物品才允许拖动：
+        // 同一批预制体在场景里还被当成「支付钱」「货架」的按钮用，那些不该能被拖走，
+        // 所以预制体上 物体拖拽.是否可被移动 的序列化值是 0，到这里才打开。
+        // 万一某个预制体没挂上，这里补一个，免得那个物品直接拖不动。
+        if (rt != null)
+        {
+            var 拖拽 = go.GetComponent<物体拖拽>();
+            if (拖拽 == null) 拖拽 = go.AddComponent<物体拖拽>();
+            拖拽.是否可被移动 = true;
+        }
+
         var 动画 = 配置;
 
         if (rt == null || !动画.启用发射 || 起点.位置 == null || 动画.飞行时长 <= 0f)
@@ -291,14 +311,17 @@ public class 发射动画 : MonoBehaviour
             原始缩放 = 原始缩放,
             原始旋转 = 原始旋转,
             飞行中禁止点击 = 动画.飞行中禁止点击,
+            落地压扁 = 动画.落地压扁,
+            落地回弹时长 = 动画.落地回弹时长,
         };
 
         var 飞行体 = go.GetComponent<发射飞行体>();
         if (飞行体 == null) 飞行体 = go.AddComponent<发射飞行体>();
         飞行体.初始化(参数);
 
-        // 来源后坐力：源本身正在飞的时候跳过，免得两个脚本抢同一个缩放
-        if (动画.源后坐力 && 起点.位置 != null && 起点.位置.GetComponent<发射飞行体>() == null)
+        // 来源后坐力：源本身正在飞、或者正被玩家拖着的时候跳过，免得两个脚本抢同一个缩放
+        if (动画.源后坐力 && 起点.位置 != null &&
+            起点.位置.GetComponent<发射飞行体>() == null && !正在被拖拽(起点.位置))
         {
             发后坐力(起点.位置, 动画.后坐力幅度, 动画.后坐力时长);
         }
@@ -310,6 +333,13 @@ public class 发射动画 : MonoBehaviour
         }
 
         return go;
+    }
+
+    /// <summary>来源物体正被玩家拖着时不要发后坐力：两个脚本会抢同一个 localScale。</summary>
+    private static bool 正在被拖拽(Transform 源)
+    {
+        var 拖 = 源.GetComponent<物体拖拽>();
+        return 拖 != null && (拖.正在拖拽 || 拖.是否处于长按状态);
     }
 
     private static void 发后坐力(Transform 源, float 幅度, float 时长)

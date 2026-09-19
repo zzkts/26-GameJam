@@ -16,8 +16,9 @@ public class 显示控制 : MonoBehaviour
     public TMP_Text 显示20元数量;
     public TMP_Text 显示50元数量;
     public TMP_Text 显示100元数量;
-    public TMP_Text 物品A数量;
-    public TMP_Text 物品B数量;
+    //public TMP_Text 物品A数量;
+    //public TMP_Text 物品B数量;
+    public List<TMP_Text> 物品显示数量列表;
     public GameObject 待交易1毛;
     public GameObject 待交易5毛;
     public GameObject 待交易1元;
@@ -26,8 +27,9 @@ public class 显示控制 : MonoBehaviour
     public GameObject 待交易20元;
     public GameObject 待交易50元;
     public GameObject 待交易100元;
-    public GameObject 待交易物品A;
-    public GameObject 待交易物品B;
+    public List<GameObject> 待交易物品列表;
+    //public GameObject 待交易物品A;
+    //public GameObject 待交易物品B;
     public List<GameObject> 提供对象 = new List<GameObject>();
     public List<int> 提供对象交易类型 = new List<int>();
     public List<float> 提供对象面值 = new List<float>();

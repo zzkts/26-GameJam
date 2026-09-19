@@ -7,6 +7,7 @@ using UnityEngine;
 public class 事件控制器 : MonoBehaviour
 {
     public static 事件控制器 Instance { get; private set; }
+    public List<GameObject> 事件列表;
     public int 当前天数;
     public List<新增现金> 刷新初始资金;
     public int 保底客户数量=5;//第一周5，后面日常3，宣传日1
@@ -40,6 +41,14 @@ public class 事件控制器 : MonoBehaviour
         当前分段时长 = 0;
         当日当前时长 = 0;
     }
+    public void 打开事件(int 打开序列)
+    {
+        for (int i = 0;i < 事件列表.Count; i++)
+        {
+            事件列表[i].SetActive(false);
+        }
+        事件列表[打开序列].SetActive(true);
+    }
     public void Update()
     {
         if (确认是否营业)
@@ -65,10 +74,14 @@ public class 事件控制器 : MonoBehaviour
             当日当前时长 = 0;
             if (显示控制.Instance.每日进度条 != null)
             {
-                显示控制.Instance.每日进度条.localPosition = new Vector2(0, 500);
+                显示控制.Instance.每日进度条.localPosition = new Vector2(0, 0);
                 显示控制.Instance.每日进度条.localScale = new Vector2(0, 1);
             }
-            确认是否营业 = false;
+            if (完成交易)
+            {
+                关门休息();
+                确认是否营业 = false;
+            }
         }
         if (当前分段时长 < 保底顾客间隔时间)
         {
@@ -80,9 +93,10 @@ public class 事件控制器 : MonoBehaviour
                 //打开关门休息的UI
                 if (显示控制.Instance.每日进度条 != null)
                 {
-                    显示控制.Instance.每日进度条.localPosition = new Vector2(0, 500);
+                    显示控制.Instance.每日进度条.localPosition = new Vector2(0, 0);
                     显示控制.Instance.每日进度条.localScale = new Vector2(0, 1);
                 }
+                关门休息();
                 确认是否营业 = false;
             }
             else
@@ -99,7 +113,7 @@ public class 事件控制器 : MonoBehaviour
                     // 这样左端始终是 -250，右端到 250
                     float 中心X = -250f + 250f * 移动比例;
 
-                    显示控制.Instance.每日进度条.localPosition = new Vector2(中心X, 500);
+                    显示控制.Instance.每日进度条.localPosition = new Vector2(中心X, 0);
                     显示控制.Instance.每日进度条.localScale = new Vector2(移动比例, 1);
                 }
                 if (完成交易)
@@ -120,7 +134,10 @@ public class 事件控制器 : MonoBehaviour
     }
     public void 关门休息()
     {
-        
+        打开事件(2);
+        显示控制.Instance.对话框.text = "";
+        //出账单
+
     }
     public void 进入下一天()
     {
@@ -144,5 +161,6 @@ public class 事件控制器 : MonoBehaviour
         当前保底客户序数 = 0;
         当前分段时长 = 0;
         当日当前时长 = 0;
+        打开事件(0);
     }
 }
